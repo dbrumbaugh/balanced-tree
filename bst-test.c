@@ -46,7 +46,12 @@ int main(int argc, char** argv)
     bst_insert(tree, 15);
 
     assert(tree->length == 5);
-    printf("bst_insert of numbers passed\n");
+    printf("bst_insert of numbers passed.\n");
+
+
+    assert(bst_search(tree, 5)->value == 5);
+    assert(bst_search(tree, 20) == NULL);
+    printf("bst_search testing passed.\n");
 
     // FIXME: Come up with a better way to automate this test. Possibly generate
     // an array, and then use an "issorted" check upon it. This will do for now.
@@ -60,7 +65,8 @@ int main(int argc, char** argv)
     for (int i = 0; i < n; i++) {
         bst_insert(tree, rand() % 100);
     }
-    printf("\n");
+    printf("Passed\n.");
+
 
     printf("The following list of numbers should be in sorted order: ");
     inorder_traverse(tree->head);
