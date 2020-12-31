@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include "bst.h"
 
-void bst_insert(bst* tree, int value)
+int bst_insert(bst* tree, int value)
 {
     bstnode* newnode = malloc(sizeof(bstnode));
     if (!newnode){
@@ -28,6 +28,7 @@ void bst_insert(bst* tree, int value)
     if (tree->length == 0) {
         tree->head = newnode;
         tree->length++;
+        return 1;
     } 
     else {
         // Okay, this is a bit janky, but I need to track all of the nodes
@@ -65,7 +66,7 @@ void bst_insert(bst* tree, int value)
                 // no need to free this list, as it is stored on the stack
                 // anyway.
 
-                return;
+                return 0;
 
             }
 
@@ -101,7 +102,7 @@ void bst_insert(bst* tree, int value)
                 else {
                    current->left = newnode;
                    tree->length++;
-                   return;
+                   return 1;
                 } 
             }
             else if (value > current->value) {
@@ -110,11 +111,13 @@ void bst_insert(bst* tree, int value)
                 else {
                     current->right = newnode;
                     tree->length++;
-                    return;
+                    return 1;   
                 }
-            }
+            }       
         }
     }
+
+    ASSERT_NOT_REACHED();
 }
 
 

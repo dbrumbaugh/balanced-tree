@@ -10,6 +10,12 @@
  * 12/30/2020
  */
 
+#include <assert.h>
+#pragma once
+
+
+#define ASSERT_NOT_REACHED() (assert(0))
+
 typedef struct BSTNode {
     int value;
     int rank;
@@ -29,7 +35,7 @@ typedef struct BST {
 } bst;
 
 
-void bst_insert(bst* tree, int value);
+int bst_insert(bst* tree, int value);
 bstnode* bst_search(bst* tree, int value);
 bstnode* bst_index(bst* tree, int index);
 bst* bst_create();
