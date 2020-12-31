@@ -9,13 +9,17 @@
  * 12/30/2020
  */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include "bst.h"
-#include <stdio.h>
 
 void bst_insert(bst* tree, int value)
 {
     bstnode* newnode = malloc(sizeof(bstnode));
+    if (!newnode){
+        fprintf(stderr, "MEMORY ERROR in bst_insert. Mallocation failed.\n");
+        exit(-1);
+    }
     newnode->value = value;
     newnode->left = NULL;
     newnode->right = NULL;
@@ -76,6 +80,10 @@ bstnode* bst_search(bst* tree, int value)
 bst* bst_create()
 {
     bst* tree = malloc(sizeof(bst));
+    if (!tree) {
+        fprintf(stderr, "MEMORY ERROR in bst_create. Mallocation failed.\n");
+        exit(-1);
+    }
     tree->head = NULL;
     tree->length = 0;
 
