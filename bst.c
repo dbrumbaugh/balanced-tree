@@ -1,9 +1,10 @@
-/*
- * bst.c
- * A simple binary search tree. This one is unbalanced, and is just to
- * serve as a starting point for working on the balanced tree.
+/* bst.c
+ * A simple binary search tree. This one is unbalanced, and is just to serve as
+ * a starting point for working on the balanced tree.
  *
- * Supports the basic operations of search, insert, and rank.
+ * Supports the basic operations of search, insert, and get by index (rank).
+ *
+ * Does not support the insertion of duplicate items.
  *
  * Douglas Rumbaugh
  * 12/30/2020
