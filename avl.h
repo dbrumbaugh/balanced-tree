@@ -8,13 +8,22 @@
  *
  */
 
+#include <assert.h>
+#pragma once
+
 #define BAL_NULL  -10
 #define BAL_PLUS  +1
 #define BAL_MINUS -1
 #define BAL_EVEN  0
 
 #define BRANCH(bal, node) ((bal == BAL_PLUS) ? node->right : node->left)
+
+// FIXME: Perhaps this should account for BAL_EVEN as well and leave it
+//        unchanged? It shouldn't happen in the module as written, but 
+//        might be worth just accounting for it anyway.
 #define REVERSE_BALANCE(bal) ((bal == BAL_PLUS) ? BAL_MINUS : BAL_PLUS)
+
+#define ASSERT_NOT_REACHED() (assert(0))
 
 
 typedef struct AVLNode {
@@ -25,10 +34,12 @@ typedef struct AVLNode {
     int balance_factor;
 } avlnode;
 
+
 typedef struct Node {
     avlnode* treenode;
     struct Node* next;
 } node;
+
 
 typedef struct AVLTree {
     avlnode* root;
