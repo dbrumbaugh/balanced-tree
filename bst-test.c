@@ -66,6 +66,7 @@ int main(int argc, char** argv)
     inorder_traverse(tree->head);
     printf("\n");
 
+    bst_clear_destroy(tree);
 
     return 0;
 }

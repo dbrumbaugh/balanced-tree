@@ -81,3 +81,29 @@ bst* bst_create()
 
     return tree;
 }
+
+
+void bst_clear(bst* tree)
+{
+    _traverse_and_free(tree->head);
+}
+
+
+void _traverse_and_free(bstnode* head)
+{
+    if (head == NULL) return;
+    _traverse_and_free(head->left);
+    _traverse_and_free(head->right);
+    free(head);
+}
+
+void bst_destroy(bst* tree)
+{
+    free(tree);
+}
+
+void bst_clear_destroy(bst* tree)
+{
+    bst_clear(tree);
+    bst_destroy(tree);
+}

@@ -24,3 +24,8 @@ typedef struct BST {
 void bst_insert(bst* tree, int value);
 bstnode* bst_search(bst* tree, int value);
 bst* bst_create();
+void bst_clear(bst* tree);
+void bst_destroy(bst* tree);
+void bst_clear_destroy(bst* tree);
+
+void _traverse_and_free(bstnode* head);
