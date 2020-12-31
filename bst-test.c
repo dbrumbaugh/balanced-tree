@@ -21,6 +21,31 @@ void inorder_traverse(bstnode* head)
     inorder_traverse(head->right);
 }
 
+void subtree_traverse(bstnode* head, int* counter)
+{
+    if (head == NULL) return;
+    subtree_traverse(head->left, counter);
+    (*counter)++;
+    subtree_traverse(head->right, counter);
+}
+    
+
+void check_rank(bstnode* head)
+{
+    // for each node in the tree, we want to traverse the left subtree and count
+    // up the number of nodes, and then compare the result to the rank of the node.
+    if (head == NULL) return;
+
+    check_rank(head->left);
+
+    int calculated_rank = 1;
+    subtree_traverse(head->left, &calculated_rank);
+    printf("For node %d\n", head->value);
+    printf("Calculated Rank: %d\nStored Rank: %d\n", calculated_rank, head->rank);
+
+    check_rank(head->right);
+}
+
 
 int main(int argc, char** argv)
 {
@@ -48,6 +73,17 @@ int main(int argc, char** argv)
     assert(tree->length == 5);
     printf("bst_insert of numbers passed.\n");
 
+    printf("Verifying node ranks...\n");
+    check_rank(tree->head);
+
+    assert(bst_index(tree, 1)->value == 0);
+    assert(bst_index(tree, 2)->value == 1);
+    assert(bst_index(tree, 3)->value == 5);
+    assert(bst_index(tree, 4)->value == 6);
+    assert(bst_index(tree, 5)->value == 15);
+
+    printf("bst_index testing passed.\n");
+
 
     assert(bst_search(tree, 5)->value == 5);
     assert(bst_search(tree, 20) == NULL);
@@ -60,16 +96,27 @@ int main(int argc, char** argv)
     printf("\n");
 
     srand(time(NULL));
-    int n = 100;
+    int n = 1000;
     printf("Inserting %d random numbers into the tree...\n", n);
     for (int i = 0; i < n; i++) {
-        bst_insert(tree, rand() % 100);
+        int x = rand() % 100;
+        printf("%d ", x);
+        bst_insert(tree, x);
     }
-    printf("Passed\n.");
+    printf("\nPassed\n.");
 
+
+    printf("Verifying node ranks...\n");
+    check_rank(tree->head);
 
     printf("The following list of numbers should be in sorted order: ");
     inorder_traverse(tree->head);
+    printf("\n");
+
+    printf("The following list of numbers should be the same as the above: ");
+    for (int i = 1; i <= tree->length; i++)
+        printf("%d ", bst_index(tree, i)->value);
+
     printf("\n");
 
     bst_clear_destroy(tree);

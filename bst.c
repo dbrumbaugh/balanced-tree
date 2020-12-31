@@ -23,23 +23,78 @@ void bst_insert(bst* tree, int value)
     newnode->value = value;
     newnode->left = NULL;
     newnode->right = NULL;
-    newnode->rank = 0;
+    newnode->rank = 1;
 
     if (tree->length == 0) {
         tree->head = newnode;
         tree->length++;
     } 
     else {
+        // Okay, this is a bit janky, but I need to track all of the nodes
+        // whose ranks have been updated during insert so that, should an
+        // insert not occur (due to a dupe entry), I can roll back those rank
+        // changes.  Given that the length of an insert path is usually going
+        // to be around lg n for a balanced tree, and even linear isn't "too"
+        // bad, I'm allocating these nodes on the stack. If this structure is
+        // going to be used for large amounts of data, it might be better to
+        // allocate on the heap instead. But this saves me from needing to run
+        // through and destroy the list at the end of each insert call.
+        node* rank_updated = alloca(sizeof(node));
+        if (!rank_updated) {
+            fprintf(stderr, "MEMORY ERROR in bst_insert. Allocation failed.\n");
+            exit(-1);
+        }
+        rank_updated->treenode = NULL;
+        rank_updated->next = NULL;
+        
         bstnode* current = tree->head;
         while (current){
             // We're going to just skip adding duplicates, rather than deal
             // with tracking multiple nodes with the same value. You'd only 
             // ever find one of them using a search anyway.
-            if (value == current->value)
-                return; 
+            if (value == current->value){
+                // before returning, we need to run through and revert any
+                // rank updates made by the algorithm during the attempted
+                // insert.
+                node* head = rank_updated;
+                while(head && head->treenode) {
+                    head->treenode->rank--;
+                    head = head->next;
+                }
+
+                // no need to free this list, as it is stored on the stack
+                // anyway.
+
+                return;
+
+            }
 
 
             if (value < current->value) { 
+                // as we are going to insert the new node to the left of this
+                // one, we will be growing it's left subtree by 1, and so we
+                // need to update the rank.
+                current->rank++;
+
+                // Additionally, we need to track the fact that we have updated
+                // it, so that we can revert the update if needed.
+                if (rank_updated->treenode) {
+                    node* new = alloca(sizeof(node));
+                    if (!new) {
+                        fprintf(stderr, "MEMORY ERROR in bst_insert. Allocation failed.\n");
+                        exit(-1);
+                    }
+                    new->treenode = current;
+
+                    // insert at the head of the list
+                    new->next = rank_updated;
+                    rank_updated = new;
+                }
+                else {
+                    rank_updated->treenode = current;
+                }
+
+
                 if (current->left) {
                     current = current->left;
                 }
@@ -60,6 +115,29 @@ void bst_insert(bst* tree, int value)
             }
         }
     }
+}
+
+
+bstnode* bst_index(bst* tree, int index)
+{
+    int old_index = index;
+    if (index > tree->length || index <= 0) return NULL;    
+    bstnode* current = tree->head;
+    while (current) {
+        /*printf("At node %d\n", current->value);
+        printf("\tcurrent rank: %d\n", current->rank);
+        printf("\tcurrent index: %d\n", index); */
+        if (index == current->rank) return current;
+
+        if (index < current->rank) current = current->left;
+        else {
+            index = index - current->rank;
+            current = current->right;
+        }
+    }
+
+    //printf("Not found for index %d\n", old_index);
+    return NULL;
 }
 
 
