@@ -40,6 +40,7 @@ int bst_insert(bst* tree, int value);
 int bst_delete(bst* tree, int value);
 bstnode* bst_search(bst* tree, int value);
 bstnode* bst_index(bst* tree, int index);
+int bst_get_index(bst* tree, int value);
 bst* bst_create();
 void bst_clear(bst* tree);
 void bst_destroy(bst* tree);

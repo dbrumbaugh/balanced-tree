@@ -167,6 +167,28 @@ void _destroy_update_tracker(node* update_tracker)
 }
 
 
+int bst_get_index(bst* tree, int value) 
+{
+    bstnode* current = tree->head;
+    int index = 0;
+
+    while (current)  {
+        if (current->value == value) {
+            return index + current->rank;
+        }
+        if (value < current->value){
+            current = current->left;
+        }
+        else if (value > current->value) {
+            index += current->rank;
+            current = current->right;
+        }        
+    }
+
+    return -1;
+}
+
+
 
 int bst_delete(bst* tree, int value)
 {
@@ -192,7 +214,6 @@ int bst_delete(bst* tree, int value)
     }
 
     if (!todelete) {
-        printf("reverting...\n");
         _revert_rank_updates(rank_tracker, +1);
         return 0;
     }
@@ -284,9 +305,6 @@ bstnode* bst_index(bst* tree, int index)
     if (index > tree->length || index <= 0) return NULL;    
     bstnode* current = tree->head;
     while (current) {
-        /*printf("At node %d\n", current->value);
-        printf("\tcurrent rank: %d\n", current->rank);
-        printf("\tcurrent index: %d\n", index); */
         if (index == current->rank) return current;
 
         if (index < current->rank) current = current->left;
@@ -296,7 +314,6 @@ bstnode* bst_index(bst* tree, int index)
         }
     }
 
-    //printf("Not found for index %d\n", old_index);
     return NULL;
 }
 

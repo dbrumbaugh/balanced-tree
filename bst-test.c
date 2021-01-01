@@ -164,6 +164,11 @@ void testtree(void)
     inorder_traverse(test->head);
     printf("\n");
 
+    for (int i=0; i<15; i++) {
+        int idx = bst_get_index(test, values[i]);
+        assert(values[i] == bst_index(test, idx)->value);
+    }
+
 
     for (int i=0; i<15; i++) {
         printf("deleting %d...\n", values[i]);
@@ -174,12 +179,14 @@ void testtree(void)
         bst_insert(test, i);
     }
     
-    //bst_delete(test, 15);
-    //bst_delete(test, 48);
-    //bst_delete(test, 31);
-    //bst_delete(test, 25);
-    //inorder_traverse(test->head);
-    //printf("\n");
+    bst_delete(test, 15);
+    bst_delete(test, 48);
+    bst_delete(test, 31);
+    bst_delete(test, 25);
+    inorder_traverse(test->head);
+    printf("\n");
+
+    bst_clear_destroy(test);
 }
 
 
