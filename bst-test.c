@@ -170,6 +170,9 @@ void testtree(void)
     }
 
 
+    assert(bst_get_index(test, 1000) == -1);
+
+
     for (int i=0; i<15; i++) {
         printf("deleting %d...\n", values[i]);
         bst_delete(test, values[i]);
