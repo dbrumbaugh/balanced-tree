@@ -26,6 +26,8 @@ int avl_delete(bst* tree, int value)
 
 int avl_insert(bst* tree, int value)
 {
+    bstnode* newnode = bstnode_create(value);
+
     return 0;
 }
 

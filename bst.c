@@ -12,6 +12,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "bst.h"
 #include "tracker.h"
 
@@ -109,6 +110,23 @@ int _delete_node(bst* tree, bstnode* del_node)
 }
 
 
+bstnode* bstnode_create(int value)
+{
+    bstnode* newnode = malloc(sizeof(bstnode));
+    if (!newnode){
+        fprintf(stderr, "MEMORY ERROR in bst_insert. Mallocation failed.\n");
+        exit(-1);
+    }
+
+    memset(newnode, 0, sizeof(bstnode));
+
+    newnode->value = value;
+    newnode->rank = 1;
+
+    return newnode;
+}
+
+
 int bst_get_index(bst* tree, int value) 
 {
     bstnode* current = tree->head;
@@ -168,73 +186,64 @@ int bst_delete(bst* tree, int value)
 
 int bst_insert(bst* tree, int value)
 {
-    bstnode* newnode = malloc(sizeof(bstnode));
-    if (!newnode){
-        fprintf(stderr, "MEMORY ERROR in bst_insert. Mallocation failed.\n");
-        exit(-1);
-    }
-    newnode->value = value;
-    newnode->left = NULL;
-    newnode->right = NULL;
-    newnode->rank = 1;
-    newnode->parent = NULL;
+    bstnode* newnode = bstnode_create(value);
 
-    if (tree->length == 0) {
+    // if the tree doesn't have a root node
+    // then just add this one as root and end.
+    if (tree->length == 0)
         tree->head = newnode;
         tree->length++;
         return 1;
-    } 
-    else {
-        node* update_tracker = init_update_tracker();
-        
-        bstnode* current = tree->head;
-        while (current){
-            // We're going to just skip adding duplicates, rather than deal
-            // with tracking multiple nodes with the same value. You'd only 
-            // ever find one of them using a search anyway.
-            if (value == current->value){
-                // before returning, we need to run through and revert any
-                // rank updates made by the algorithm during the attempted
-                // insert.
-                revert_rank_updates(update_tracker, -1);
-                destroy_update_tracker(update_tracker);
 
-                return 0;
-            }
+    node* update_tracker = init_update_tracker();
+    
+    bstnode* current = tree->head;
+    while (current){
+        // We're going to just skip adding duplicates, rather than deal
+        // with tracking multiple nodes with the same value. You'd only 
+        // ever find one of them using a search anyway.
+        if (value == current->value){
+            // before returning, we need to run through and revert any
+            // rank updates made by the algorithm during the attempted
+            // insert.
+            revert_rank_updates(update_tracker, -1);
+            destroy_update_tracker(update_tracker);
 
-            if (value < current->value) { 
-                // as we are going to insert the new node to the left of this
-                // one, we will be growing it's left subtree by 1, and so we
-                // need to update the rank.
-                current->rank++;
-
-                // Additionally, we need to track the fact that we have updated
-                // it, so that we can revert the update if needed.
-                update_tracker = track_update(update_tracker, current);
-
-                if (current->left) {
-                    current = current->left;
-                }
-                else {
-                   current->left = newnode;
-                   newnode->parent = current;
-                   tree->length++;
-                   destroy_update_tracker(update_tracker);
-                   return 1;
-                } 
-            }
-            else if (value > current->value) {
-                if (current->right)
-                    current = current->right;
-                else {
-                    current->right = newnode;
-                    newnode->parent = current;
-                    tree->length++;
-                    destroy_update_tracker(update_tracker);
-                    return 1;   
-                }
-            }       
+            return 0;
         }
+
+        if (value < current->value) { 
+            // as we are going to insert the new node to the left of this
+            // one, we will be growing it's left subtree by 1, and so we
+            // need to update the rank.
+            current->rank++;
+
+            // Additionally, we need to track the fact that we have updated
+            // it, so that we can revert the update if needed.
+            update_tracker = track_update(update_tracker, current);
+
+            if (current->left) {
+                current = current->left;
+            }
+            else {
+               current->left = newnode;
+               newnode->parent = current;
+               tree->length++;
+               destroy_update_tracker(update_tracker);
+               return 1;
+            } 
+        }
+        else if (value > current->value) {
+            if (current->right)
+                current = current->right;
+            else {
+                current->right = newnode;
+                newnode->parent = current;
+                tree->length++;
+                destroy_update_tracker(update_tracker);
+                return 1;   
+            }
+        }       
     }
 
     ASSERT_NOT_REACHED();
@@ -281,8 +290,8 @@ bst* bst_create()
         fprintf(stderr, "MEMORY ERROR in bst_create. Mallocation failed.\n");
         exit(-1);
     }
-    tree->head = NULL;
-    tree->length = 0;
+
+    memset(tree, 0, sizeof(bst));
 
     return tree;
 }
