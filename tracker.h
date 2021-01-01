@@ -1,5 +1,7 @@
 #include "bst.h"
 
+#pragma once
+
 typedef struct Node {
     bstnode* treenode;
     struct Node* next;
