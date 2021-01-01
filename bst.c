@@ -14,6 +14,195 @@
 #include <stdlib.h>
 #include "bst.h"
 
+void _traverse_and_count(bstnode* head, int* cnt)
+{
+    if (head == NULL) return;
+    _traverse_and_count(head->left, cnt);
+    (*cnt)++;
+    _traverse_and_count(head->right, cnt);
+}
+
+int _count_children(bstnode* head)
+{
+    int cnt = 0;
+    _traverse_and_count(head, &cnt);
+    return cnt;
+}
+
+int _delete_node(bst* tree, bstnode* del_node)
+{
+    int head_node = del_node->parent == NULL;
+    int left_child = !head_node && del_node->value < del_node->parent->value;
+
+    if (!del_node->right) {
+        if (head_node) {
+            tree->head = del_node->left;
+        }
+        else if (left_child) {
+            del_node->parent->left = del_node->left;
+        }
+        else {
+            del_node->parent->right = del_node->left;
+        }
+
+        if (del_node->left)
+            del_node->left->parent = del_node->parent;
+
+        free(del_node);
+        return 1;
+    }
+
+    bstnode* r = del_node->right;
+
+    if (!r->left) {
+        r->left = del_node->left;
+        r->rank = del_node->rank;
+
+        if (head_node)
+            tree->head = r;
+        else if (left_child)
+            del_node->parent->left = r;
+        else
+            del_node->parent->right = r;
+
+        r->parent = del_node->parent;
+        free(del_node);
+        return 1;
+    }
+
+    bstnode* s = r->left;
+    while (s->left) {
+        r = s;
+        s = r->left;
+    }
+
+
+    s->left = del_node->left;
+    if (del_node->left)
+        del_node->left->parent = s;
+
+    r->left = s->right;
+    if (s->right)
+        s->right->parent = r;
+    r->rank = _count_children(s->right) + 1;
+
+    s->right = del_node->right;
+    if (del_node->right)
+        del_node->right->parent = s;
+
+    if (head_node) {
+        tree->head = s;
+    }
+    else if (left_child) 
+        del_node->parent->left = s;
+    else
+        del_node->parent->right = s;
+
+    s->parent = del_node->parent;
+    s->rank = del_node->rank;
+
+    free(del_node);
+    return 1;
+}
+
+
+node* _init_update_tracker()
+{
+    node* head = malloc(sizeof(node));
+    
+    if (!head) {
+        fprintf(stderr, "MEMORY ERROR in init_update_tracker. Mallocation failed.\n");
+        exit(-1);
+    }
+
+    head->next = NULL;
+    head->treenode = NULL;
+
+    return head;
+}
+
+
+void _revert_rank_updates(node* head, int direction) {
+    // these nodes are stored on the stack, so they'll be cleaned up
+    // when the calling function returns. No need to free them here.
+    while(head && head->treenode) {
+        head->treenode->rank = head->treenode->rank + direction;
+        head = head->next;
+    }
+}
+
+
+node* _track_update(node* updated_nodes, bstnode* tracked_node)
+{
+    if (updated_nodes->treenode) {
+        node* new = malloc(sizeof(node));
+        if (!new) {
+            fprintf(stderr, "MEMORY ERROR in track_update. Mallocation failed.\n");
+            exit(-1);
+        }
+
+        new->treenode = tracked_node;
+        new->next = updated_nodes;
+        return new;
+    }
+    else
+    {
+        updated_nodes->treenode = tracked_node;
+        updated_nodes->next = NULL;
+        return updated_nodes;
+    }
+}
+
+
+void _destroy_update_tracker(node* update_tracker)
+{
+    node* current = update_tracker;
+    node* next = current->next;
+
+    while (current) {
+        next = current->next;
+        free(current);
+        current = next;
+    }
+}
+
+
+
+int bst_delete(bst* tree, int value)
+{
+    node* rank_tracker = _init_update_tracker();
+
+    bstnode* current = tree->head;
+    bstnode* todelete = NULL;
+    while (current) {
+        if (current->value == value) {
+            todelete = current;
+            current = NULL;
+        } 
+
+        else if (current->value > value) {
+            current->rank--;
+            rank_tracker = _track_update(rank_tracker, current);
+            current = current->left;
+        }
+
+        else {
+            current = current->right;
+        }
+    }
+
+    if (!todelete) {
+        printf("reverting...\n");
+        _revert_rank_updates(rank_tracker, +1);
+        return 0;
+    }
+
+    _delete_node(tree, todelete);
+    tree->length--;
+    _destroy_update_tracker(rank_tracker);
+    return 1;
+}
+
 int bst_insert(bst* tree, int value)
 {
     bstnode* newnode = malloc(sizeof(bstnode));
@@ -25,6 +214,7 @@ int bst_insert(bst* tree, int value)
     newnode->left = NULL;
     newnode->right = NULL;
     newnode->rank = 1;
+    newnode->parent = NULL;
 
     if (tree->length == 0) {
         tree->head = newnode;
@@ -32,22 +222,7 @@ int bst_insert(bst* tree, int value)
         return 1;
     } 
     else {
-        // Okay, this is a bit janky, but I need to track all of the nodes
-        // whose ranks have been updated during insert so that, should an
-        // insert not occur (due to a dupe entry), I can roll back those rank
-        // changes.  Given that the length of an insert path is usually going
-        // to be around lg n for a balanced tree, and even linear isn't "too"
-        // bad, I'm allocating these nodes on the stack. If this structure is
-        // going to be used for large amounts of data, it might be better to
-        // allocate on the heap instead. But this saves me from needing to run
-        // through and destroy the list at the end of each insert call.
-        node* rank_updated = alloca(sizeof(node));
-        if (!rank_updated) {
-            fprintf(stderr, "MEMORY ERROR in bst_insert. Allocation failed.\n");
-            exit(-1);
-        }
-        rank_updated->treenode = NULL;
-        rank_updated->next = NULL;
+        node* update_tracker = _init_update_tracker();
         
         bstnode* current = tree->head;
         while (current){
@@ -58,19 +233,11 @@ int bst_insert(bst* tree, int value)
                 // before returning, we need to run through and revert any
                 // rank updates made by the algorithm during the attempted
                 // insert.
-                node* head = rank_updated;
-                while(head && head->treenode) {
-                    head->treenode->rank--;
-                    head = head->next;
-                }
-
-                // no need to free this list, as it is stored on the stack
-                // anyway.
+                _revert_rank_updates(update_tracker, -1);
+                _destroy_update_tracker(update_tracker);
 
                 return 0;
-
             }
-
 
             if (value < current->value) { 
                 // as we are going to insert the new node to the left of this
@@ -80,29 +247,16 @@ int bst_insert(bst* tree, int value)
 
                 // Additionally, we need to track the fact that we have updated
                 // it, so that we can revert the update if needed.
-                if (rank_updated->treenode) {
-                    node* new = alloca(sizeof(node));
-                    if (!new) {
-                        fprintf(stderr, "MEMORY ERROR in bst_insert. Allocation failed.\n");
-                        exit(-1);
-                    }
-                    new->treenode = current;
-
-                    // insert at the head of the list
-                    new->next = rank_updated;
-                    rank_updated = new;
-                }
-                else {
-                    rank_updated->treenode = current;
-                }
-
+                update_tracker = _track_update(update_tracker, current);
 
                 if (current->left) {
                     current = current->left;
                 }
                 else {
                    current->left = newnode;
+                   newnode->parent = current;
                    tree->length++;
+                   _destroy_update_tracker(update_tracker);
                    return 1;
                 } 
             }
@@ -111,7 +265,9 @@ int bst_insert(bst* tree, int value)
                     current = current->right;
                 else {
                     current->right = newnode;
+                    newnode->parent = current;
                     tree->length++;
+                    _destroy_update_tracker(update_tracker);
                     return 1;   
                 }
             }       
@@ -186,6 +342,8 @@ void _traverse_and_free(bstnode* head)
     _traverse_and_free(head->right);
     free(head);
 }
+
+
 
 void bst_destroy(bst* tree)
 {

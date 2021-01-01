@@ -16,6 +16,7 @@
 void inorder_traverse(bstnode* head)
 {
     if (head == NULL) return;
+
     inorder_traverse(head->left);
     printf("%d ", head->value);
     inorder_traverse(head->right);
@@ -37,17 +38,19 @@ void check_rank(bstnode* head)
     if (head == NULL) return;
 
     check_rank(head->left);
-
+    
     int calculated_rank = 1;
     subtree_traverse(head->left, &calculated_rank);
     printf("For node %d\n", head->value);
     printf("Calculated Rank: %d\nStored Rank: %d\n", calculated_rank, head->rank);
+    if (head->value > 100) printf("Node value is %d\n", head->value);
+    assert(calculated_rank = head->rank);
 
     check_rank(head->right);
 }
 
 
-int main(int argc, char** argv)
+int main1(int argc, char** argv)
 {
 
     // test the creation of an empty tree. The length should be zero,
@@ -84,10 +87,35 @@ int main(int argc, char** argv)
 
     printf("bst_index testing passed.\n");
 
+    printf("Testing bst_insert w/ duplicate\n");
+    assert(bst_insert(tree, 5) == 0);
+    assert(tree->length == 5);
+    assert(bst_index(tree, 1)->value == 0);
+    assert(bst_index(tree, 2)->value == 1);
+    assert(bst_index(tree, 3)->value == 5);
+    assert(bst_index(tree, 4)->value == 6);
+    assert(bst_index(tree, 5)->value == 15);
+    printf("bst_insert duplicate passed.\n");
+
 
     assert(bst_search(tree, 5)->value == 5);
     assert(bst_search(tree, 20) == NULL);
     printf("bst_search testing passed.\n");
+
+
+    printf("Testing bst_delete...\n");
+    assert(bst_delete(tree, 30) == 0);
+    assert(tree->length == 5);
+
+    assert(bst_delete(tree, 6) == 1);
+    assert(tree->length == 4);
+    assert(bst_search(tree, 6) == NULL);
+
+    check_rank(tree->head);
+
+    assert(bst_index(tree, 4));
+
+    printf("bst_delete testing passed...\n");
 
     // FIXME: Come up with a better way to automate this test. Possibly generate
     // an array, and then use an "issorted" check upon it. This will do for now.
@@ -122,4 +150,40 @@ int main(int argc, char** argv)
     bst_clear_destroy(tree);
 
     return 0;
+}
+
+void testtree(void)
+{
+    bst* test = bst_create();
+    int values[] = { 5, 6, 1, 0, 15, 48, 31, 25, 41, 43, 36, 0, 7, 95, 85  };
+
+    for (int i=0; i<15; i++) {
+            bst_insert(test, values[i]);
+    }
+
+    inorder_traverse(test->head);
+    printf("\n");
+
+
+    for (int i=0; i<15; i++) {
+        printf("deleting %d...\n", values[i]);
+        bst_delete(test, values[i]);
+        inorder_traverse(test->head);
+        printf("\n");
+        check_rank(test->head);
+        bst_insert(test, i);
+    }
+    
+    //bst_delete(test, 15);
+    //bst_delete(test, 48);
+    //bst_delete(test, 31);
+    //bst_delete(test, 25);
+    //inorder_traverse(test->head);
+    //printf("\n");
+}
+
+
+int main(int argc, char** argv)
+{
+    testtree();
 }

@@ -21,6 +21,7 @@ typedef struct BSTNode {
     int rank;
     struct BSTNode* left;
     struct BSTNode* right;
+    struct BSTNode* parent;
 } bstnode;
 
 
@@ -36,6 +37,7 @@ typedef struct BST {
 
 
 int bst_insert(bst* tree, int value);
+int bst_delete(bst* tree, int value);
 bstnode* bst_search(bst* tree, int value);
 bstnode* bst_index(bst* tree, int index);
 bst* bst_create();
@@ -44,3 +46,5 @@ void bst_destroy(bst* tree);
 void bst_clear_destroy(bst* tree);
 
 void _traverse_and_free(bstnode* head);
+void _revert_rank_updates(node* head, int direction);
+int _delete_node(bst* tree, bstnode* node);
