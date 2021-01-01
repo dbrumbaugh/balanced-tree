@@ -22,13 +22,15 @@ typedef struct BSTNode {
     struct BSTNode* left;
     struct BSTNode* right;
     struct BSTNode* parent;
+
+    // To save on code copying, I'm going to just 
+    // use the same node and tree objects for AVL
+    // as well, so I need to add this here. It isn't
+    // neccessary for standard BST operation, and won't
+    // be used by any of the bst_ functions.
+    int balance_factor;
 } bstnode;
 
-
-typedef struct Node {
-    bstnode* treenode;
-    struct Node* next;
-} node;
 
 typedef struct BST {
     int length;
@@ -47,5 +49,6 @@ void bst_destroy(bst* tree);
 void bst_clear_destroy(bst* tree);
 
 void _traverse_and_free(bstnode* head);
-void _revert_rank_updates(node* head, int direction);
 int _delete_node(bst* tree, bstnode* node);
+void _traverse_and_count(bstnode* head, int* cnt);
+int _count_children(bstnode* head);
