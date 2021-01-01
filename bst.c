@@ -190,10 +190,11 @@ int bst_insert(bst* tree, int value)
 
     // if the tree doesn't have a root node
     // then just add this one as root and end.
-    if (tree->length == 0)
+    if (tree->length == 0) {
         tree->head = newnode;
         tree->length++;
         return 1;
+    }
 
     node* update_tracker = init_update_tracker();
     
