@@ -10,9 +10,13 @@
 #pragma once
 
 #include "bst.h"
-
+#define MAX(x, y) ((x) > (y) ? (x) : (y))
+#define MIN(x, y) ((x) < (y) ? (x) : (y))
 
 void inorder_traverse(bstnode* head);
 void subtree_traverse(bstnode* head, int* counter);
 void check_rank(bstnode* head, int verbose);
+int calculate_tree_height(bstnode* head);
+void subtree_node_counts(bstnode* head, int verbose);
+void check_strict_balance(bstnode* head, int verbose);
 
