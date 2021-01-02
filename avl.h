@@ -32,6 +32,9 @@ bstnode* avl_search(bst* tree, int value);
 bstnode* avl_index(bst* tree, int index);
 int avl_get_index(bst* tree, int value);
 
+void avl_rotate_left(bst* tree, bstnode* center);
+void avl_rotate_right(bst* tree, bstnode* center);
+
 void avl_clear(bst* tree);
 void avl_destroy(bst* tree);
 void avl_clear_destroy(bst* tree);
