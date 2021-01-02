@@ -44,7 +44,6 @@ void check_rank(bstnode* head, int verbose)
         printf("For node %d\n", head->value);
         printf("Calculated Rank: %d\nStored Rank: %d\n", calculated_rank, head->rank);
     }
-    if (head->value > 100) printf("Node value is %d\n", head->value);
     assert(calculated_rank = head->rank);
 
     check_rank(head->right, verbose);
