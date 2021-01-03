@@ -102,8 +102,8 @@ bst* avl_create(void)
 
 void avl_node_delete(bst* tree, bstnode* todelete, node* path)
 {
-    // temporary for testing purposes
     bst_node_delete(tree, todelete);
+
 }
 
 
@@ -131,64 +131,32 @@ int avl_insert(bst* tree, int value)
     bstnode* newnode = bstnode_create(value);
     newnode->balance_factor = EVEN;
 
+
     if (tree->length == 0) {
         tree->head = newnode;
         tree->length++;
         return 1;
     }
 
-    bstnode* current = tree->head;
-    bstnode* rebalance_node = tree->head;
+    node* path_tracker = init_update_tracker();
+    bstnode* insert_location = bst_find_node_and_path(tree, value, &path_tracker, 1);
 
-    node* update_tracker = init_update_tracker();
-
-    while(current) {
-        if (value == current->value) {
-            //already in the tree
-            revert_rank_updates(update_tracker, -1);
-            destroy_update_tracker(update_tracker);
-            return 0;
-        }
-        else if (value < current->value) {
-            // go left
-            current->rank++;
-            track_update(&update_tracker, current, LEFT);
-
-            if (current->left) {
-                current = current->left;
-                if (current->balance_factor) rebalance_node = current;
-            }
-            else {
-                current->left = newnode;
-                newnode->parent = current;
-                tree->length++;
-                destroy_update_tracker(update_tracker);
-                printf("Inserting %d left of %d. Rebalance point is %d (%+d).\n",
-                        value, current->value, rebalance_node->value, 
-                        rebalance_node->balance_factor);
-                break;
-            }
-        }
-        else if (value > current->value) {
-            // go right
-            if (current->right) {
-                current = current->right;
-                if (current->balance_factor) rebalance_node = current;
-            }
-            else {
-                // insert the node
-                current->right = newnode;
-                newnode->parent = current;
-                tree->length++;
-                destroy_update_tracker(update_tracker);
-                printf("Inserting %d right of %d. Rebalance point is %d (%+d).\n",
-                        value, current->value, rebalance_node->value,
-                        rebalance_node->balance_factor);
-                break;
-            }
-        }
-
+    if (insert_location) {
+        revert_rank_updates(path_tracker, -1);
+        destroy_update_tracker(path_tracker);
+        return 0;
     }
+
+    bst_node_insert(tree, newnode, path_tracker);
+
+    // find the point at which we need to rebalance the tree.
+    // This will be either the root, or the closest node to the insert
+    // that is unbalanced.
+    while (path_tracker && path_tracker->treenode->balance_factor == EVEN) {
+        path_tracker = path_tracker->next;
+    }
+
+    bstnode* rebalance_node = (path_tracker) ? path_tracker->treenode : tree->head;
 
     int insert_direction = (value < rebalance_node->value) ? LEFT : RIGHT;
     bstnode* pivot = BRANCH(insert_direction, rebalance_node);
