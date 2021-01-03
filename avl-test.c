@@ -238,6 +238,31 @@ int example_tree()
 
     printf("inserting 42\n");
     avl_insert(test, 42);
+
+
+
+    printf("delete testing...\n");
+    printf("delete 42\n");
+    avl_delete(test, 42);
+    check_rank(test->head, 0);
+    inorder_traverse(test->head);
+
+    printf("delete 36\n");
+    avl_delete(test, 36);
+    check_rank(test->head, 0);
+    inorder_traverse(test->head);
+
+    printf("delete 1000\n");
+    avl_delete(test, 1000);
+    check_rank(test->head, 0);
+    inorder_traverse(test->head);
+
+    printf("delete 0\n");
+    avl_delete(test, 0);
+    check_rank(test->head, 0);
+    inorder_traverse(test->head);
+
+
     avl_clear_destroy(test);
     return 0;
 }

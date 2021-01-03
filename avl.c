@@ -11,7 +11,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "avl.h"
-#include "tracker.h"
 
 void avl_rotate_left(bst* tree, bstnode* center)
 {
@@ -101,13 +100,29 @@ bst* avl_create(void)
 }
 
 
+void avl_node_delete(bst* tree, bstnode* todelete, node* path)
+{
+    // temporary for testing purposes
+    bst_node_delete(tree, todelete);
+}
+
+
 int avl_delete(bst* tree, int value)
 {
-    //TODO: This isn't final, obviously. Just want to
-    //      validate that rotations are working okay
-    //      before diving too deeply into the weeds on
-    //      getting this to work.
-    return bst_delete(tree, value);
+    node* path_tracker = init_update_tracker();
+    bstnode* todelete = bst_find_node_and_path(tree, value, &path_tracker, -1);
+
+
+    if (!todelete) {
+        revert_rank_updates(path_tracker, +1);
+        return 0;
+    }
+
+    avl_node_delete(tree, todelete, path_tracker);
+    tree->length--;
+    destroy_update_tracker(path_tracker);
+
+    return 1;
 }
 
 
@@ -137,7 +152,7 @@ int avl_insert(bst* tree, int value)
         else if (value < current->value) {
             // go left
             current->rank++;
-            update_tracker = track_update(update_tracker, current);
+            track_update(&update_tracker, current, LEFT);
 
             if (current->left) {
                 current = current->left;
