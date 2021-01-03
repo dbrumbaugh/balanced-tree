@@ -23,14 +23,15 @@ void revert_rank_updates(node* head, int direction) {
     // these nodes are stored on the stack, so they'll be cleaned up
     // when the calling function returns. No need to free them here.
     while(head && head->treenode) {
-        head->treenode->rank = head->treenode->rank + direction;
+        if (head->direction == LEFT)
+            head->treenode->rank = head->treenode->rank + direction;
         head = head->next;
     }
 }
 
-node* track_update(node* updated_nodes, bstnode* tracked_node)
+void track_update(node** updated_nodes, bstnode* tracked_node, int direction)
 {
-    if (updated_nodes->treenode) {
+    if ((*updated_nodes)->treenode) {
         node* new = malloc(sizeof(node));
         if (!new) {
             fprintf(stderr, "MEMORY ERROR in track_update. Mallocation failed.\n");
@@ -38,14 +39,16 @@ node* track_update(node* updated_nodes, bstnode* tracked_node)
         }
 
         new->treenode = tracked_node;
-        new->next = updated_nodes;
-        return new;
+        new->next = *updated_nodes;
+        new->direction = direction;
+
+        *updated_nodes = new;
     }
     else
     {
-        updated_nodes->treenode = tracked_node;
-        updated_nodes->next = NULL;
-        return updated_nodes;
+        (*updated_nodes)->treenode = tracked_node;
+        (*updated_nodes)->next = NULL;
+        (*updated_nodes)->direction = direction;
     }
 }
 

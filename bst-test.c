@@ -128,7 +128,7 @@ void testtree(void)
     }
 
     printf("traversing...\n");
-    check_rank(test->head, 0);
+    check_rank(test->head, 1);
 
     inorder_traverse(test->head);
     printf("\n");
@@ -164,5 +164,6 @@ void testtree(void)
 
 int main(int argc, char** argv)
 {
-    testtree();
+    //testtree();
+    main1(argc, argv);
 }

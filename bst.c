@@ -14,7 +14,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include "bst.h"
-#include "tracker.h"
 
 void _traverse_and_count(bstnode* head, int* cnt)
 {
@@ -33,7 +32,7 @@ int _count_children(bstnode* head)
 }
 
 
-int _delete_node(bst* tree, bstnode* del_node)
+int bst_node_delete(bst* tree, bstnode* del_node)
 {
     int head_node = del_node->parent == NULL;
     int left_child = !head_node && del_node->value < del_node->parent->value;
@@ -149,39 +148,64 @@ int bst_get_index(bst* tree, int value)
 }
 
 
-int bst_delete(bst* tree, int value)
+bstnode* bst_find_node_and_path(bst* tree, int value, node** path_tracker,
+        int rank_update)
 {
-    node* rank_tracker = init_update_tracker();
-
     bstnode* current = tree->head;
-    bstnode* todelete = NULL;
+    bstnode* requested_node = NULL;
+
     while (current) {
         if (current->value == value) {
-            todelete = current;
+            requested_node = current;
             current = NULL;
         } 
 
-        else if (current->value > value) {
-            current->rank--;
-            rank_tracker = track_update(rank_tracker, current);
+        else if (value < current->value) {
+            current->rank = current->rank + rank_update;
+            track_update(path_tracker, current, LEFT);
             current = current->left;
         }
 
         else {
+            track_update(path_tracker, current, RIGHT);
             current = current->right;
         }
     }
 
+    return requested_node;
+}
+
+
+int bst_delete(bst* tree, int value)
+{
+    node* path_tracker = init_update_tracker();
+    bstnode* todelete = bst_find_node_and_path(tree, value, &path_tracker, -1);
+
     if (!todelete) {
-        revert_rank_updates(rank_tracker, +1);
+        revert_rank_updates(path_tracker, +1);
         return 0;
     }
 
-    _delete_node(tree, todelete);
+    bst_node_delete(tree, todelete);
     tree->length--;
-    destroy_update_tracker(rank_tracker);
+    destroy_update_tracker(path_tracker);
+
     return 1;
 }
+
+
+void bst_node_insert(bst* tree, bstnode* newnode, node* path_tracker)
+{
+    bstnode* insert_location = path_tracker->treenode;
+    if (path_tracker->direction == LEFT)
+        insert_location->left = newnode;
+    else // path->tracker->direction == RIGHT
+        insert_location->right = newnode;
+
+   newnode->parent = insert_location;
+   tree->length++;
+}
+
 
 
 int bst_insert(bst* tree, int value)
@@ -196,58 +220,21 @@ int bst_insert(bst* tree, int value)
         return 1;
     }
 
-    node* update_tracker = init_update_tracker();
-    
-    bstnode* current = tree->head;
-    while (current){
-        // We're going to just skip adding duplicates, rather than deal
-        // with tracking multiple nodes with the same value. You'd only 
-        // ever find one of them using a search anyway.
-        if (value == current->value){
-            // before returning, we need to run through and revert any
-            // rank updates made by the algorithm during the attempted
-            // insert.
-            revert_rank_updates(update_tracker, -1);
-            destroy_update_tracker(update_tracker);
+    node* path_tracker = init_update_tracker();
 
-            return 0;
-        }
+    bstnode* insert_location = bst_find_node_and_path(tree, value, &path_tracker, 1);
 
-        if (value < current->value) { 
-            // as we are going to insert the new node to the left of this
-            // one, we will be growing it's left subtree by 1, and so we
-            // need to update the rank.
-            current->rank++;
-
-            // Additionally, we need to track the fact that we have updated
-            // it, so that we can revert the update if needed.
-            update_tracker = track_update(update_tracker, current);
-
-            if (current->left) {
-                current = current->left;
-            }
-            else {
-               current->left = newnode;
-               newnode->parent = current;
-               tree->length++;
-               destroy_update_tracker(update_tracker);
-               return 1;
-            } 
-        }
-        else if (value > current->value) {
-            if (current->right)
-                current = current->right;
-            else {
-                current->right = newnode;
-                newnode->parent = current;
-                tree->length++;
-                destroy_update_tracker(update_tracker);
-                return 1;   
-            }
-        }       
+    // if a node of the specified value doesn't exist, insert it
+    if (!insert_location) {
+        bst_node_insert(tree, newnode, path_tracker);
+        destroy_update_tracker(path_tracker);
+        return 1;
     }
 
-    ASSERT_NOT_REACHED();
+    // otherwise, roll back rank updates and don't insert anything
+    revert_rank_updates(path_tracker, -1);
+    destroy_update_tracker(path_tracker);
+    return 0;
 }
 
 

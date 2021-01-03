@@ -1,13 +1,7 @@
-#include "bst.h"
-
 #pragma once
-
-typedef struct Node {
-    bstnode* treenode;
-    struct Node* next;
-} node;
+#include "bst.h"
 
 node* init_update_tracker();
 void revert_rank_updates(node* head, int direction);
-node* track_update(node* updated_nodes, bstnode* tracked_node);
+void track_update(node** updated_nodes, bstnode* tracked_node, int direction);
 void destroy_update_tracker(node* update_tracker);
