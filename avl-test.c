@@ -70,6 +70,7 @@ int standard_tests()
     printf("avl_search testing passed.\n");
 
 
+    /*
     printf("Testing avl_delete...\n");
     assert(avl_delete(tree, 30) == 0);
     assert(tree->length == 5);
@@ -83,6 +84,7 @@ int standard_tests()
     assert(avl_index(tree, 4));
 
     printf("avl_delete testing passed...\n");
+    */
 
     // FIXME: Come up with a better way to automate this test. Possibly generate
     // an array, and then use an "issorted" check upon it. This will do for now.
@@ -94,15 +96,19 @@ int standard_tests()
     int n = 1000;
     printf("Inserting %d random numbers into the tree...\n", n);
     for (int i = 0; i < n; i++) {
-        int x = rand() % 100;
-        printf("%d ", x);
+        int x = rand() % n;
         avl_insert(tree, x);
+        check_strict_balance(tree->head, 0);
     }
     printf("\nPassed\n.");
 
 
     printf("Verifying node ranks...\n");
     check_rank(tree->head, 0);
+
+
+    printf("Validating balance...\n");
+    check_strict_balance(tree->head, 0);
 
     printf("The following list of numbers should be in sorted order: ");
     inorder_traverse(tree->head);
@@ -120,6 +126,29 @@ int standard_tests()
 }
 
 
+int double_rot() 
+{
+    bst* test = avl_create();
+    avl_insert(test, 5);
+    avl_insert(test, 6);
+    avl_insert(test, 1);
+    avl_insert(test, 0);
+    avl_insert(test, 15);
+    avl_insert(test, 527);
+    avl_insert(test, 144);
+    avl_insert(test, 159);
+
+    
+    avl_insert(test, 98);
+    avl_insert(test, 395);
+
+    check_strict_balance(test->head, 1);
+
+    avl_clear_destroy(test);
+    return 0;
+}
+
+
 int example_tree()
 {
     bst* test = avl_create();
@@ -133,31 +162,40 @@ int example_tree()
     printf("\n");
 
     // insert 48, and then do a left-rotation about 15
+    printf("should rotate left\n");
     avl_insert(test, 48);
     bstnode* b = avl_search(test, 15);
     bstnode* a = b->parent;
-    avl_rotate_left(test, a);    
+
+    //avl_rotate_left(test, a);    
+    
+
     inorder_traverse(test->head);
     printf("\n");
     check_rank(test->head, 0);
 
+    printf("shouldn't rotate\n");
     avl_insert(test, 31);
 
     // insert 25 and do a right-rotation about 31.
+    printf("should rotate right\n");
     avl_insert(test, 25);
     b = avl_search(test, 31);
     a = b->parent;
-    avl_rotate_right(test, a);
+
+    //avl_rotate_right(test, a);
 
     inorder_traverse(test->head);
     printf("\n");
     check_rank(test->head, 0);
 
     // insert 41 and do a left-rotation about 31
+    printf("should rotate left\n");
     avl_insert(test, 41);
     b = avl_search(test, 31);
     a = b->parent;
-    avl_rotate_left(test, a);
+
+    //avl_rotate_left(test, a);
 
     inorder_traverse(test->head);
     printf("\n");
@@ -165,35 +203,42 @@ int example_tree()
 
 
     // insert 49
-    printf("%d\n",avl_insert(test, 49));
+    
+    printf("shouldn't rotate\n");
+    avl_insert(test, 49);
 
     // insert 36 and do a left-rotation about 31
+    printf("should rotate left.\n");
     avl_insert(test, 36);
     b = avl_search(test, 31);
     a = b->parent;
-    avl_rotate_left(test, a);
+    //avl_rotate_left(test, a);
 
     inorder_traverse(test->head);
     printf("\n");
     check_rank(test->head, 0);
-
 
     printf("%d\n", test->head->value);
     printf("%d\t%d\n", test->head->left->value, test->head->right->value);
     printf("%d\t%d\n", test->head->left->left->value, test->head->left->right->value);
     printf("%d\t%d\n", test->head->right->left->value, test->head->right->right->value);
 
-    b = avl_search(test, 5);
-    avl_rotate_left(test, b->parent);
 
     inorder_traverse(test->head);
     printf("\n");
     check_rank(test->head, 0);
 
-    printf("%d\n", test->head->value);
-    printf("%d\t%d\n", test->head->left->value, test->head->right->value);
-    printf("%d\t%d\n", test->head->left->left->value, test->head->left->right->value);
-    printf("%d\t%d\n", test->head->left->left->left->value, test->head->left->left->right->value);
+    printf("checking balance...\n");
+    check_strict_balance(test->head, 0);
+    printf("done...\n");
+
+
+    printf("Inserting 43\n");
+    avl_insert(test, 43);
+
+    printf("inserting 42\n");
+    avl_insert(test, 42);
+    avl_clear_destroy(test);
     return 0;
 }
 
@@ -259,6 +304,8 @@ int main(int argc, char **argv)
         example_tree();
     else if (argc > 1 && !strcmp(argv[1], "rstress"))
         rotation_stress(1000);
+    else if (argc > 1 && !strcmp(argv[1], "rot"))
+        double_rot();
 
     return 0;
 }
