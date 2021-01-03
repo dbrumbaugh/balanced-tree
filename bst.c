@@ -52,6 +52,7 @@ int bst_node_delete(bst* tree, bstnode* del_node)
             del_node->left->parent = del_node->parent;
 
         free(del_node);
+        tree->length--;
         return 1;
     }
 
@@ -70,6 +71,7 @@ int bst_node_delete(bst* tree, bstnode* del_node)
 
         r->parent = del_node->parent;
         free(del_node);
+        tree->length--;
         return 1;
     }
 
@@ -105,6 +107,7 @@ int bst_node_delete(bst* tree, bstnode* del_node)
     s->rank = del_node->rank;
 
     free(del_node);
+    tree->length--;
     return 1;
 }
 
@@ -187,7 +190,6 @@ int bst_delete(bst* tree, int value)
     }
 
     bst_node_delete(tree, todelete);
-    tree->length--;
     destroy_update_tracker(path_tracker);
 
     return 1;
