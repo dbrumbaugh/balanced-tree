@@ -46,6 +46,7 @@ bstnode* bst_index(bst* tree, int index);
 bstnode* bst_find_node_and_path(bst* tree, int value, node** path_tracker, int rank_update);
 int bst_get_index(bst* tree, int value);
 
+void bst_rotate(bst* tree, bstnode* center, int direction);
 void bst_rotate_left(bst* tree, bstnode* center);
 void bst_rotate_right(bst* tree, bstnode* center);
 
