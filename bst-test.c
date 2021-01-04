@@ -77,7 +77,8 @@ int main1(int argc, char** argv)
     assert(tree->length == 4);
     assert(bst_search(tree, 6) == NULL);
 
-    check_rank(tree->head, 0);
+    check_rank(tree->head, 1);
+    inorder_traverse(tree->head);
 
     assert(bst_index(tree, 4));
 
@@ -93,7 +94,7 @@ int main1(int argc, char** argv)
     int n = 1000;
     printf("Inserting %d random numbers into the tree...\n", n);
     for (int i = 0; i < n; i++) {
-        int x = rand() % 100;
+        int x = rand() % n;
         printf("%d ", x);
         bst_insert(tree, x);
     }
@@ -111,6 +112,18 @@ int main1(int argc, char** argv)
     for (int i = 1; i <= tree->length; i++)
         printf("%d ", bst_index(tree, i)->value);
 
+    printf("\n");
+
+    printf("Random delete testing...\n");
+    int m = 500;
+    printf("Deleting %d random numbers from the tree...\n", m);
+    for (int j=0; j<m; j++) {
+        int x = rand() % n;
+        bst_delete(tree, x);
+        check_rank(tree->head, 0);
+    }
+
+    inorder_traverse(tree->head);
     printf("\n");
 
     bst_clear_destroy(tree);

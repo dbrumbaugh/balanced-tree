@@ -31,89 +31,121 @@ int _count_children(bstnode* head)
     return cnt;
 }
 
+void bst_rotate_left(bst* tree, bstnode* center)
+{
+    // if the rotation center has no node on the right, there isn't anything
+    // to rotate! So just pass
+    if (!center->right) return;
+
+    bstnode* pivot = center->right;
+    
+    // named subtrees, for convenience
+    bstnode* alpha = center->left;
+    bstnode* beta = pivot->left;
+    bstnode* gamma = pivot->right;
+
+    // Check if the center of rotation is the root of the
+    // tree. If so, we'll need to make the pivot the new
+    // root, so just take care of that now.
+    int head_node = !center->parent;
+    if (head_node) tree->head = pivot;
+
+    pivot->parent = center->parent;
+    pivot->left = center;
+    center->parent = pivot;
+
+    center->right = beta;
+    if (beta) {
+        beta->parent = center;
+    }
+
+    // Because the pivot's left subtree become's centers's right,
+    // we can fix its rank by just adding centers's rank to
+    // it, which accounts for all the elements in a
+    // and its left subtree already. 
+    //
+    // centers's left subtree isn't touched, and so a's rank
+    // should remain the same.
+    pivot->rank += center->rank; 
+
+    if (pivot->parent && pivot->parent->left && pivot->parent->left->value == center->value)
+        pivot->parent->left = pivot;
+    else if (pivot->parent && pivot->parent->right && pivot->parent->right->value == center->value)
+        pivot->parent->right = pivot;
+}
+
+
+void bst_rotate_right(bst* tree, bstnode* center)
+{
+    // if the rotation center has no node on the left, there isn't anything
+    // to rotate! So just pass
+    if (!center->left) return;
+
+    bstnode* pivot = center->left;
+
+    // named subtrees, for convenience
+    bstnode* alpha = center->right;
+    bstnode* beta = pivot->right;
+    bstnode* gamma = pivot->left;
+
+    // Check if the center of rotation is the root of the
+    // tree. If so, we'll need to make the pivot the new
+    // root, so just take care of that now.
+    int head_node = !center->parent;
+    if (head_node) tree->head = pivot;
+
+    pivot->parent = center->parent;
+    pivot->right = center;
+    center->parent = pivot;
+
+    center->left = beta;
+    if (beta) {
+        beta->parent = center;
+    }
+
+    // Center loses pivot's left subtree, so deduct this from its rank.
+    center->rank -= pivot->rank;
+
+    if (pivot->parent && pivot->parent->left && pivot->parent->left->value == center->value)
+        pivot->parent->left = pivot;
+    else if (pivot->parent && pivot->parent->right && pivot->parent->right->value == center->value)
+        pivot->parent->right = pivot;
+}
+
 
 int bst_node_delete(bst* tree, bstnode* del_node, node** path_tracker)
 {
-    int head_node = del_node->parent == NULL;
-    int left_child = !head_node && del_node->value < del_node->parent->value;
-
-    if (!del_node->right) {
-        if (head_node) {
-            tree->head = del_node->left;
-        }
-        else if (left_child) {
-            del_node->parent->left = del_node->left;
-        }
-        else {
-            del_node->parent->right = del_node->left;
-        }
-
-        if (del_node->left)
-            del_node->left->parent = del_node->parent;
-
-        free(del_node);
+    // if there's only one element in the tree, we'll just handle that
+    // as a special case.
+    if (tree->length == 1) {
+        tree->head = NULL;
         tree->length--;
+        free(del_node);
         return 1;
     }
 
-    bstnode* r = del_node->right;
+    // we want to move the node to be deleted down the tree
+    // until it has no right children
+    while(del_node->right)
+        bst_rotate_left(tree, del_node);
 
-    if (!r->left) {
-        track_update(path_tracker, r, RIGHT);
-        printf("In delete node, r %d\n", r->value);
-        r->left = del_node->left;
-        r->rank = del_node->rank;
-
-        if (head_node)
-            tree->head = r;
-        else if (left_child)
-            del_node->parent->left = r;
-        else
-            del_node->parent->right = r;
-
-        r->parent = del_node->parent;
-        free(del_node);
-        tree->length--;
-        return 1;
+    // once it has no right children, we can "snip" it out
+    // of the tree.
+    if (del_node->left) {
+        del_node->left->parent = del_node->parent;
     }
 
-    bstnode* s = r->left;
-    //printf("In delete node, s %d\n", s->value);
-    //track_update(path_tracker, s, LEFT);
-    while (s->left) {
-        r = s;
-        s = r->left;
+    int left_child = del_node->value < del_node->parent->value;
+    if (del_node->value < del_node->parent->value) {
+        del_node->parent->left = del_node->left;
+        del_node->parent->rank = del_node->rank;
+    } else {
+        del_node->parent->right = del_node->left;
     }
-
-    track_update(path_tracker, r, LEFT);
-    track_update(path_tracker, s, LEFT);
-
-    s->left = del_node->left;
-    if (del_node->left)
-        del_node->left->parent = s;
-
-    r->left = s->right;
-    if (s->right)
-        s->right->parent = r;
-    r->rank = _count_children(s->right) + 1;
-
-    s->right = del_node->right;
-    if (del_node->right)
-        del_node->right->parent = s;
-
-    if (head_node) {
-        tree->head = s;
-    }
-    else if (left_child) 
-        del_node->parent->left = s;
-    else
-        del_node->parent->right = s;
-
-    s->parent = del_node->parent;
-    s->rank = del_node->rank;
 
     free(del_node);
     tree->length--;
+
     return 1;
 }
 
