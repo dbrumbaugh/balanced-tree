@@ -40,6 +40,7 @@ int standard_tests()
     avl_insert(tree, 0);
     avl_insert(tree, 15);
 
+    printf("%d\n", tree->length);
     assert(tree->length == 5);
     printf("avl_insert of numbers passed.\n");
 
@@ -70,7 +71,6 @@ int standard_tests()
     printf("avl_search testing passed.\n");
 
 
-    /*
     printf("Testing avl_delete...\n");
     assert(avl_delete(tree, 30) == 0);
     assert(tree->length == 5);
@@ -83,8 +83,9 @@ int standard_tests()
 
     assert(avl_index(tree, 4));
 
+    check_strict_balance(tree->head, 0);
+
     printf("avl_delete testing passed...\n");
-    */
 
     // FIXME: Come up with a better way to automate this test. Possibly generate
     // an array, and then use an "issorted" check upon it. This will do for now.
@@ -119,6 +120,18 @@ int standard_tests()
         printf("%d ", avl_index(tree, i)->value);
 
     printf("\n");
+
+
+    srand(time(NULL));
+    int m = 1000;
+    printf("Deleting %d random numbers from the tree...\n", m);
+    for (int i = 0; i < m; i++) {
+        int x = rand() % n;
+        avl_delete(tree, x);
+        check_strict_balance(tree->head, 0);
+    }
+    printf("\nPassed\n.");
+
 
     avl_clear_destroy(tree);
 
@@ -207,6 +220,7 @@ int example_tree()
     printf("shouldn't rotate\n");
     avl_insert(test, 49);
 
+    /*
     // insert 36 and do a left-rotation about 31
     printf("should rotate left.\n");
     avl_insert(test, 36);
@@ -217,31 +231,28 @@ int example_tree()
     inorder_traverse(test->head);
     printf("\n");
     check_rank(test->head, 0);
-
-    printf("%d\n", test->head->value);
-    printf("%d\t%d\n", test->head->left->value, test->head->right->value);
-    printf("%d\t%d\n", test->head->left->left->value, test->head->left->right->value);
-    printf("%d\t%d\n", test->head->right->left->value, test->head->right->right->value);
-
-
-    inorder_traverse(test->head);
-    printf("\n");
-    check_rank(test->head, 0);
+    */
 
     printf("checking balance...\n");
     check_strict_balance(test->head, 0);
     printf("done...\n");
 
 
-    printf("Inserting 43\n");
-    avl_insert(test, 43);
-
-    printf("inserting 42\n");
-    avl_insert(test, 42);
-
-
-
     printf("delete testing...\n");
+
+
+    avl_delete(test, 1);
+    check_strict_balance(test->head, 0);
+
+    exit(0);
+
+    avl_delete(test, 36);
+    avl_delete(test, 6);
+    avl_delete(test, 41);
+    avl_delete(test, 49);
+
+    check_strict_balance(test->head, 0);
+    /*
     printf("delete 42\n");
     avl_delete(test, 42);
     check_rank(test->head, 0);
@@ -261,6 +272,7 @@ int example_tree()
     avl_delete(test, 0);
     check_rank(test->head, 0);
     inorder_traverse(test->head);
+    */
 
 
     avl_clear_destroy(test);

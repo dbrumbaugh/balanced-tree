@@ -50,7 +50,7 @@ void bst_destroy(bst* tree);
 void bst_clear_destroy(bst* tree);
 
 void _traverse_and_free(bstnode* head);
-int bst_node_delete(bst* tree, bstnode* del_node);
+int bst_node_delete(bst* tree, bstnode* del_node, node** path_tracker);
 void bst_node_insert(bst* tree, bstnode* newnode, node* path_tracker);
 void _traverse_and_count(bstnode* head, int* cnt);
 int _count_children(bstnode* head);
