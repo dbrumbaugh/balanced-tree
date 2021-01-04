@@ -32,7 +32,7 @@ int _count_children(bstnode* head)
 }
 
 
-int bst_node_delete(bst* tree, bstnode* del_node)
+int bst_node_delete(bst* tree, bstnode* del_node, node** path_tracker)
 {
     int head_node = del_node->parent == NULL;
     int left_child = !head_node && del_node->value < del_node->parent->value;
@@ -59,6 +59,8 @@ int bst_node_delete(bst* tree, bstnode* del_node)
     bstnode* r = del_node->right;
 
     if (!r->left) {
+        track_update(path_tracker, r, RIGHT);
+        printf("In delete node, r %d\n", r->value);
         r->left = del_node->left;
         r->rank = del_node->rank;
 
@@ -76,11 +78,15 @@ int bst_node_delete(bst* tree, bstnode* del_node)
     }
 
     bstnode* s = r->left;
+    //printf("In delete node, s %d\n", s->value);
+    //track_update(path_tracker, s, LEFT);
     while (s->left) {
         r = s;
         s = r->left;
     }
 
+    track_update(path_tracker, r, LEFT);
+    track_update(path_tracker, s, LEFT);
 
     s->left = del_node->left;
     if (del_node->left)
@@ -189,7 +195,7 @@ int bst_delete(bst* tree, int value)
         return 0;
     }
 
-    bst_node_delete(tree, todelete);
+    bst_node_delete(tree, todelete, &path_tracker);
     destroy_update_tracker(path_tracker);
 
     return 1;

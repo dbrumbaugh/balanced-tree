@@ -7,22 +7,13 @@
  * 12/30/2020
  *
  */
-
-#include <assert.h>
-#include "bst.h"
 #pragma once
 
-#define BAL_NULL  -10
-#define BAL_PLUS  +1
-#define BAL_MINUS -1
-#define BAL_EVEN  0
+#include "nodes.h"
+#include <assert.h>
+#include "bst.h"
+#include "tracker.h"
 
-#define BRANCH(bal, node) ((bal == BAL_PLUS) ? node->right : node->left)
-
-// FIXME: Perhaps this should account for BAL_EVEN as well and leave it
-//        unchanged? It shouldn't happen in the module as written, but 
-//        might be worth just accounting for it anyway.
-#define REVERSE_BALANCE(bal) ((bal == BAL_PLUS) ? BAL_MINUS : BAL_PLUS)
 
 bst* avl_create(void);
 
@@ -38,3 +29,5 @@ void avl_rotate_right(bst* tree, bstnode* center);
 void avl_clear(bst* tree);
 void avl_destroy(bst* tree);
 void avl_clear_destroy(bst* tree);
+
+void _avl_delete_balancing(bst* tree, bstnode* rebalance_node, int delete_direction);
