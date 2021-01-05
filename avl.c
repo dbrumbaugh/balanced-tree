@@ -256,6 +256,7 @@ int avl_delete_slow(bst** tree, int value)
         }
     }
 
+    avl_clear(*tree);
     int rc = (new_tree->length < (*tree)->length) ? 1 : 0;
     *tree = new_tree;
     return rc;
