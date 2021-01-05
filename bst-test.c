@@ -42,6 +42,8 @@ int main1(int argc, char** argv)
     assert(tree->length == 5);
     printf("bst_insert of numbers passed.\n");
 
+    check_bst_ordering(tree);
+
     printf("Verifying node ranks...\n");
     check_rank(tree->head, 0);
 
@@ -86,33 +88,30 @@ int main1(int argc, char** argv)
 
     // FIXME: Come up with a better way to automate this test. Possibly generate
     // an array, and then use an "issorted" check upon it. This will do for now.
-    printf("The following list of numbers should be in sorted order: ");
-    inorder_traverse(tree->head);
-    printf("\n");
+    printf("Verifying BST Ordering... ");
+    check_bst_ordering(tree);
+    printf("passed!\n");
 
     srand(time(NULL));
     int n = 1000;
     printf("Inserting %d random numbers into the tree...\n", n);
     for (int i = 0; i < n; i++) {
         int x = rand() % n;
-        printf("%d ", x);
         bst_insert(tree, x);
     }
-    printf("\nPassed\n.");
+    printf("passed!\n");
 
 
     printf("Verifying node ranks...\n");
     check_rank(tree->head, 0);
 
-    printf("The following list of numbers should be in sorted order: ");
-    inorder_traverse(tree->head);
-    printf("\n");
+    printf("Verifying BST ordering...\n");
+    check_bst_ordering(tree);
+    printf("passed!\n");
 
-    printf("The following list of numbers should be the same as the above: ");
-    for (int i = 1; i <= tree->length; i++)
-        printf("%d ", bst_index(tree, i)->value);
-
-    printf("\n");
+    printf("Verifying element indexes...\n");
+    check_bst_indexing(tree);
+    printf("passed!\n");
 
     printf("Random delete testing...\n");
     int m = 500;
@@ -123,8 +122,11 @@ int main1(int argc, char** argv)
         check_rank(tree->head, 0);
     }
 
-    inorder_traverse(tree->head);
-    printf("\n");
+    check_bst_ordering(tree);
+
+    printf("passed!\n");
+
+
 
     bst_clear_destroy(tree);
 

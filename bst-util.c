@@ -111,3 +111,70 @@ void check_rank(bstnode* head, int verbose)
 
     check_rank(head->right, verbose);
 }
+
+void _inorder_tree_to_array(bstnode* head, int* index, int* array)
+{
+    if (head == NULL) return;
+
+    _inorder_tree_to_array(head->left, index, array);
+    array[*index] = head->value;
+    (*index)++;
+    _inorder_tree_to_array(head->right, index, array);
+}
+
+
+int isordered(int* array, int n) 
+{
+    for (int i=1; i<n; i++) {
+        if (array[i] < array[i-1]) {
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
+
+void check_bst_ordering(bst* tree)
+{
+    if (tree->length == 0) {
+        return;
+    }
+
+    int* elements = malloc(sizeof(int) * tree->length);
+    if (!elements) {
+        fprintf(stderr, "Mallocation error in check_bst_ordering.\n");
+        exit(-1);
+    }
+        
+    int index = 0;
+    _inorder_tree_to_array(tree->head, &index, elements);
+
+    assert(isordered(elements, tree->length));
+}
+
+
+void check_bst_indexing(bst* tree)
+{
+    if (tree->length == 0) {
+        return;
+    }
+
+    int* elements = malloc(sizeof(int) * tree->length);
+    if (!elements) {
+        fprintf(stderr, "Mallocation error in check_bst_ordering.\n");
+        exit(-1);
+    }
+        
+    int index = 0;
+    _inorder_tree_to_array(tree->head, &index, elements);
+
+    int* indexed_elements = malloc(sizeof(int) * tree->length);
+    for (int i=1;i<=tree->length;i++) {
+        indexed_elements[i-1] = bst_index(tree, i)->value;
+    }
+
+    for (int i=0; i<tree->length;i++){
+       assert(indexed_elements[i] == elements[i]);
+    }
+}

@@ -19,4 +19,5 @@ void check_rank(bstnode* head, int verbose);
 int calculate_tree_height(bstnode* head);
 void subtree_node_counts(bstnode* head, int verbose);
 void check_strict_balance(bstnode* head, int verbose);
-
+void check_bst_ordering(bst* tree);
+void check_bst_indexing(bst* tree);
