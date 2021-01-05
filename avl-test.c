@@ -87,11 +87,9 @@ int standard_tests()
 
     printf("avl_delete testing passed...\n");
 
-    // FIXME: Come up with a better way to automate this test. Possibly generate
-    // an array, and then use an "issorted" check upon it. This will do for now.
-    printf("The following list of numbers should be in sorted order: ");
-    inorder_traverse(tree->head);
-    printf("\n");
+    printf("Verifying BST ordering...\n");
+    check_bst_ordering(tree);
+    printf("passed!\n");
 
     srand(time(NULL));
     int n = 1000;
@@ -103,23 +101,22 @@ int standard_tests()
     }
     printf("\nPassed\n.");
 
+    printf("Verifying BST ordering...\n");
+    check_bst_ordering(tree);
+    printf("passed!\n");
+
 
     printf("Verifying node ranks...\n");
     check_rank(tree->head, 0);
-
+    printf("Passed!\n");
 
     printf("Validating balance...\n");
     check_strict_balance(tree->head, 0);
+    printf("passed!\n");
 
-    printf("The following list of numbers should be in sorted order: ");
-    inorder_traverse(tree->head);
-    printf("\n");
-
-    printf("The following list of numbers should be the same as the above: ");
-    for (int i = 1; i <= tree->length; i++)
-        printf("%d ", avl_index(tree, i)->value);
-
-    printf("\n");
+    printf("Verifying BST Indexing.\n");
+    check_bst_indexing(tree);
+    printf("passed!\n");
 
 
     srand(time(NULL));
@@ -127,9 +124,12 @@ int standard_tests()
     printf("Deleting %d random numbers from the tree...\n", m);
     for (int i = 0; i < m; i++) {
         int x = rand() % n;
-        avl_delete(tree, x);
-        check_strict_balance(tree->head, 0);
+        bstnode* node = bst_search(tree, x);
+        if (!node || (!node->right && !node->left))
+            avl_delete(tree, x);
     }
+
+    check_strict_balance(tree->head, 0);
     printf("\nPassed\n.");
 
 
@@ -244,7 +244,6 @@ int example_tree()
     avl_delete(test, 1);
     check_strict_balance(test->head, 0);
 
-    exit(0);
 
     avl_delete(test, 36);
     avl_delete(test, 6);
@@ -298,8 +297,7 @@ int rotation_stress(int n)
         avl_insert(test, x);
     }
 
-    inorder_traverse(test->head);
-    printf("\n");
+    check_bst_ordering(test);
 
     printf("Passed\n");
     
@@ -322,11 +320,13 @@ int rotation_stress(int n)
                 printf("done rotating...\n");
             }
 
-            inorder_traverse(test->head);
-            printf("\n");
+            check_bst_ordering(test);
+            check_bst_indexing(test);
             check_rank(test->head, 0);
         }    
     }
+
+    printf("Passed\n");
 
     return 0;
 }
@@ -340,7 +340,7 @@ int main(int argc, char **argv)
     else if (argc > 1 && !strcmp(argv[1], "example"))
         example_tree();
     else if (argc > 1 && !strcmp(argv[1], "rstress"))
-        rotation_stress(1000);
+        rotation_stress(10000);
     else if (argc > 1 && !strcmp(argv[1], "rot"))
         double_rot();
 

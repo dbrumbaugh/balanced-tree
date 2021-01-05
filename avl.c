@@ -24,9 +24,14 @@ void avl_rotate_right(bst* tree, bstnode* center)
 }
 
 
-void avl_rebalance(bst* tree, bstnode* rebalance_node, int direction)
+int avl_rebalance(bst* tree, bstnode* rebalance_node, int direction)
 {
     bstnode* pivot = BRANCH(direction, rebalance_node);
+
+    if (!pivot) { // no rotation can be done in this direction
+        return 0;
+    }
+
     printf("pivot node is %d (%d)\n", pivot->value, pivot->balance_factor);
 
     // special case for deletion when the pivot is already balanced
@@ -63,49 +68,52 @@ void avl_rebalance(bst* tree, bstnode* rebalance_node, int direction)
     }
     else {
         // double rotation
+        bstnode* second_pivot = BRANCH(REVERSE_DIRECTION(direction), pivot);
+
+        if (!second_pivot) {
+            return -1;
+        }
+
         if (direction == LEFT) {
             printf("Double rotation, left then right!\n");
-            bstnode* b = rebalance_node->left;
-            bstnode* x = b->right;
-            avl_rotate_left(tree, b);
+            avl_rotate_left(tree, pivot);
             avl_rotate_right(tree, rebalance_node);
 
-            if (x->balance_factor == direction) {
+            if (second_pivot->balance_factor == direction) {
                 rebalance_node->balance_factor = REVERSE_DIRECTION(direction);
-                b->balance_factor = 0;
-            } else if (x->balance_factor == EVEN) {
+                pivot->balance_factor = 0;
+            } else if (second_pivot->balance_factor == EVEN) {
                 rebalance_node->balance_factor = 0;
-                b->balance_factor = 0;
-            } else if (x->balance_factor == REVERSE_DIRECTION(direction)) {
+                pivot->balance_factor = 0;
+            } else if (second_pivot->balance_factor == REVERSE_DIRECTION(direction)) {
                 rebalance_node->balance_factor = 0;
-                b->balance_factor = direction;
+                pivot->balance_factor = direction;
             }
 
-                x->balance_factor = 0;
+                second_pivot->balance_factor = 0;
         }
         else {
             printf("Double rotation, right then left\n");
-            bstnode* b = rebalance_node->right;
-            bstnode* x = b->left;
-            avl_rotate_right(tree, b);
+            avl_rotate_right(tree, pivot);
             avl_rotate_left(tree, rebalance_node);
 
-            if (x->balance_factor == direction) {
+            if (second_pivot->balance_factor == direction) {
                 rebalance_node->balance_factor = REVERSE_DIRECTION(direction);
-                b->balance_factor = 0;
-            } else if (x->balance_factor == EVEN) {
+                pivot->balance_factor = 0;
+            } else if (second_pivot->balance_factor == EVEN) {
                 rebalance_node->balance_factor = 0;
-                b->balance_factor = 0;
-            } else if (x->balance_factor == REVERSE_DIRECTION(direction)) {
+                pivot->balance_factor = 0;
+            } else if (second_pivot->balance_factor == REVERSE_DIRECTION(direction)) {
                 rebalance_node->balance_factor = 0;
-                b->balance_factor = direction;
+                pivot->balance_factor = direction;
             }
 
-            x->balance_factor = 0;
+            second_pivot->balance_factor = 0;
         }
     }
 
     printf("end of rebalance\n");
+    return 1;
 }
 
 
@@ -157,6 +165,10 @@ int avl_delete(bst* tree, int value)
 
     node* tracker_head = path_tracker; 
 
+    // We'll need to process balance updates for each node that was touched
+    // by the delete, starting at the bottom.
+    int original_balance = -1;
+
     printf("Tracked nodes...\n");
     node* temp = path_tracker;
     while (temp) {
@@ -165,29 +177,8 @@ int avl_delete(bst* tree, int value)
         temp = temp->next;
     }
 
-    // process nodes swapped during the delete process
-    while (path_tracker && path_tracker != search_path_stop) {
-        //int delete_direction = (value < path_tracker->treenode->value) ? LEFT : RIGHT;
-        int delete_direction = path_tracker->direction;
-        _avl_delete_balancing(tree, path_tracker->treenode, delete_direction);
-
-        path_tracker = path_tracker->next;
-    }
-
-    // We'll need to process balance updates for each node that was touched
-    // by the delete, starting at the bottom.
-    int original_balance = -1;
-
-    printf("Tracked nodes...\n");
-    temp = path_tracker;
-    while (temp) {
-        printf("%d (%d)\n", temp->treenode->value,
-                temp->treenode->balance_factor);
-        temp = temp->next;
-    }
-
     printf("\n\nBeginning Rebalance for Delete of %d\n", value);
-    while (path_tracker && original_balance != EVEN) {
+    while (path_tracker) {
         // process balance updates (and rotations!)
         original_balance = path_tracker->treenode->balance_factor;
         _avl_delete_balancing(tree, path_tracker->treenode, path_tracker->direction);
@@ -216,7 +207,9 @@ void _avl_delete_balancing(bst* tree, bstnode* rebalance_node, int delete_direct
         rebalance_node->balance_factor = REVERSE_DIRECTION(delete_direction);
     } else if (rebalance_node->balance_factor == REVERSE_DIRECTION(delete_direction)) {
         printf("we must rebalance!\n");
-        avl_rebalance(tree, rebalance_node, REVERSE_DIRECTION(delete_direction));
+        int x = avl_rebalance(tree, rebalance_node, REVERSE_DIRECTION(delete_direction));
+        assert(!x);
+        printf("%d\n", x);
     }
 
     printf("Rebalance node final state: %d (%d)\n", rebalance_node->value,
