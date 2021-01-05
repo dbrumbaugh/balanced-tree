@@ -156,6 +156,7 @@ void check_bst_ordering(bst* tree)
     _inorder_tree_to_array(tree->head, &index, elements, tree->length);
 
     assert(isordered(elements, tree->length));
+    free(elements);
 }
 
 
@@ -182,4 +183,7 @@ void check_bst_indexing(bst* tree)
     for (int i=0; i<tree->length;i++){
        assert(indexed_elements[i] == elements[i]);
     }
+
+    free(elements);
+    free(indexed_elements);
 }
