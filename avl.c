@@ -250,7 +250,6 @@ int avl_delete_slow(bst** tree, int value)
 
     bst* new_tree = bst_create();
     for (int i=1; i < (*tree)->length+1; i++) {
-        printf("%d\n", i);
         bstnode* node = bst_index(*tree, i);
         if (node->value != value) {
             avl_insert(new_tree, node->value);
