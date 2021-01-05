@@ -117,8 +117,28 @@ bst* avl_create(void)
 
 void avl_node_delete(bst* tree, bstnode* todelete, node** path)
 {
-    bst_node_delete(tree, todelete, path);
+    node* rotated_nodes = init_update_tracker();
+    bst_node_delete(tree, todelete, &rotated_nodes);
 
+    // we need to walk back up the path, rotating as needed to
+    // fix the balance.
+    node* stack_head = rotated_nodes;
+    node* current = rotated_nodes;
+
+    while(current) {
+        bstnode* rebalance_node = current->treenode;
+
+        // fix the balance of rebalance_node, 
+        // if needed.
+        
+        current = current->next;
+    }
+
+    // once the balance of the nodes rotated have been fixed, everything above
+    // these should remain in the original balance state, and so the balance
+    // correction code in avl_delete can take it from here.
+
+    destroy_update_tracker(stack_head);
 }
 
 
@@ -151,7 +171,6 @@ int avl_delete(bst* tree, int value)
         int delete_direction = path_tracker->direction;
         _avl_delete_balancing(tree, path_tracker->treenode, delete_direction);
 
-
         path_tracker = path_tracker->next;
     }
 
@@ -172,9 +191,7 @@ int avl_delete(bst* tree, int value)
     while (path_tracker && original_balance != EVEN) {
         // process balance updates (and rotations!)
         original_balance = path_tracker->treenode->balance_factor;
-        //int delete_direction = (value < path_tracker->treenode->value) ? LEFT : RIGHT;
-        int delete_direction = path_tracker->direction;
-        _avl_delete_balancing(tree, path_tracker->treenode, delete_direction);
+        _avl_delete_balancing(tree, path_tracker->treenode, path_tracker->direction);
 
         path_tracker = path_tracker->next;
     }
@@ -279,69 +296,6 @@ int avl_insert(bst* tree, int value)
     if (rebalance_node->balance_factor == insert_direction) 
         avl_rebalance(tree, rebalance_node, insert_direction);
     
-    /*
-    if (rebalance_node->balance_factor == insert_direction) {
-        if (pivot->balance_factor == insert_direction) {
-            // single rotation
-            if (insert_direction == LEFT)  {
-                printf("rotating right!\n");
-                avl_rotate_right(tree, rebalance_node);
-                rebalance_node->balance_factor = EVEN;
-                rebalance_node->parent->balance_factor = EVEN;
-            }
-            else {
-                printf("rotating left!\n");
-                avl_rotate_left(tree, rebalance_node);
-                rebalance_node->balance_factor = EVEN;
-                rebalance_node->parent->balance_factor = EVEN;
-            }
-        }
-        else {
-            // double rotation
-            if (insert_direction == LEFT) {
-                printf("Double rotation, left then right!\n");
-                bstnode* b = rebalance_node->left;
-                bstnode* x = b->right;
-                avl_rotate_left(tree, b);
-                avl_rotate_right(tree, rebalance_node);
-
-                if (x->balance_factor == insert_direction) {
-                    rebalance_node->balance_factor = REVERSE_DIRECTION(insert_direction);
-                    b->balance_factor = 0;
-                } else if (x->balance_factor == EVEN) {
-                    rebalance_node->balance_factor = 0;
-                    b->balance_factor = 0;
-                } else if (x->balance_factor == REVERSE_DIRECTION(insert_direction)) {
-                    rebalance_node->balance_factor = 0;
-                    b->balance_factor = insert_direction;
-                }
-
-                x->balance_factor = 0;
-            }
-            else {
-                printf("Double rotation, right then left\n");
-                bstnode* b = rebalance_node->right;
-                bstnode* x = b->left;
-                avl_rotate_right(tree, b);
-                avl_rotate_left(tree, rebalance_node);
-
-                if (x->balance_factor == insert_direction) {
-                    rebalance_node->balance_factor = REVERSE_DIRECTION(insert_direction);
-                    b->balance_factor = 0;
-                } else if (x->balance_factor == EVEN) {
-                    rebalance_node->balance_factor = 0;
-                    b->balance_factor = 0;
-                } else if (x->balance_factor == REVERSE_DIRECTION(insert_direction)) {
-                    rebalance_node->balance_factor = 0;
-                    b->balance_factor = insert_direction;
-                }
-
-                x->balance_factor = 0;
-            }
-        } 
-    } */
-
-
     destroy_update_tracker(tracker_head);
     return 0;
 }
