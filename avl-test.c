@@ -71,11 +71,11 @@ int standard_tests()
     printf("avl_search testing passed.\n");
 
 
-    printf("Testing avl_delete...\n");
-    assert(avl_delete(tree, 30) == 0);
+    printf("Testing avl_delete_slow...\n");
+    assert(avl_delete_slow(&tree, 30) == 0);
     assert(tree->length == 5);
 
-    assert(avl_delete(tree, 6) == 1);
+    assert(avl_delete_slow(&tree, 6) == 1);
     assert(tree->length == 4);
     assert(avl_search(tree, 6) == NULL);
 
@@ -85,7 +85,7 @@ int standard_tests()
 
     check_strict_balance(tree->head, 0);
 
-    printf("avl_delete testing passed...\n");
+    printf("avl_delete_slow testing passed...\n");
 
     printf("Verifying BST ordering...\n");
     check_bst_ordering(tree);
@@ -126,7 +126,7 @@ int standard_tests()
         int x = rand() % n;
         bstnode* node = bst_search(tree, x);
         if (!node || (!node->right && !node->left))
-            avl_delete(tree, x);
+            avl_delete_slow(&tree, x);
     }
 
     check_strict_balance(tree->head, 0);
@@ -241,34 +241,34 @@ int example_tree()
     printf("delete testing...\n");
 
 
-    avl_delete(test, 1);
+    avl_delete_slow(&test, 1);
     check_strict_balance(test->head, 0);
 
 
-    avl_delete(test, 36);
-    avl_delete(test, 6);
-    avl_delete(test, 41);
-    avl_delete(test, 49);
+    avl_delete_slow(&test, 36);
+    avl_delete_slow(&test, 6);
+    avl_delete_slow(&test, 41);
+    avl_delete_slow(&test, 49);
 
     check_strict_balance(test->head, 0);
     /*
     printf("delete 42\n");
-    avl_delete(test, 42);
+    avl_delete_slow(test, 42);
     check_rank(test->head, 0);
     inorder_traverse(test->head);
 
     printf("delete 36\n");
-    avl_delete(test, 36);
+    avl_delete_slow(test, 36);
     check_rank(test->head, 0);
     inorder_traverse(test->head);
 
     printf("delete 1000\n");
-    avl_delete(test, 1000);
+    avl_delete_slow(test, 1000);
     check_rank(test->head, 0);
     inorder_traverse(test->head);
 
     printf("delete 0\n");
-    avl_delete(test, 0);
+    avl_delete_slow(test, 0);
     check_rank(test->head, 0);
     inorder_traverse(test->head);
     */

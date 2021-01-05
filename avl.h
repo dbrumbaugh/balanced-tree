@@ -19,6 +19,7 @@ bst* avl_create(void);
 
 int avl_insert(bst* tree, int value);
 int avl_delete(bst* tree, int value);
+int avl_delete_slow(bst** tree, int value);
 bstnode* avl_search(bst* tree, int value);
 bstnode* avl_index(bst* tree, int index);
 int avl_get_index(bst* tree, int value);

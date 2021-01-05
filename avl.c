@@ -236,6 +236,33 @@ void _avl_insert_balancing(bst* tree, bstnode* rebalance_node, int direction)
 }
 
 
+int avl_delete_slow(bst** tree, int value)
+{
+    // a slow (n lg n) version of delete that maintains balance
+    // by just rebuilding a new tree without the offending element.
+    
+    bstnode* del_node = avl_search(*tree, value);
+
+    if (!del_node) {
+        // the element isn't in the tree, so do nothing
+        return 0;
+    }
+
+    bst* new_tree = bst_create();
+    for (int i=1; i < (*tree)->length+1; i++) {
+        printf("%d\n", i);
+        bstnode* node = bst_index(*tree, i);
+        if (node->value != value) {
+            avl_insert(new_tree, node->value);
+        }
+    }
+
+    int rc = (new_tree->length < (*tree)->length) ? 1 : 0;
+    *tree = new_tree;
+    return rc;
+}
+
+
 int avl_insert(bst* tree, int value)
 {
     bstnode* newnode = bstnode_create(value);
