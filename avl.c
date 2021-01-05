@@ -186,7 +186,6 @@ int avl_delete(bst* tree, int value)
         temp = temp->next;
     }
 
-    
     printf("\n\nBeginning Rebalance for Delete of %d\n", value);
     while (path_tracker && original_balance != EVEN) {
         // process balance updates (and rotations!)
@@ -204,26 +203,43 @@ int avl_delete(bst* tree, int value)
 
 void _avl_delete_balancing(bst* tree, bstnode* rebalance_node, int delete_direction)
 {
-        // process balance updates (and rotations!)
-        printf("Current rebalance node %d (%d)\n", rebalance_node->value,
-                rebalance_node->balance_factor);
+    // process balance updates (and rotations!)
+    printf("Current rebalance node %d (%d)\n", rebalance_node->value,
+            rebalance_node->balance_factor);
 
-        printf("Delete direction is %d\n", delete_direction);
+    printf("Delete direction is %d\n", delete_direction);
 
-        // Update balance factors for rebalance point
-        if (rebalance_node->balance_factor == delete_direction)
-            rebalance_node->balance_factor = EVEN;
+    // Update balance factors for rebalance point
+    if (rebalance_node->balance_factor == delete_direction) {
+        rebalance_node->balance_factor = EVEN;
+    } else if (rebalance_node->balance_factor == EVEN) {
+        rebalance_node->balance_factor = REVERSE_DIRECTION(delete_direction);
+    } else if (rebalance_node->balance_factor == REVERSE_DIRECTION(delete_direction)) {
+        printf("we must rebalance!\n");
+        avl_rebalance(tree, rebalance_node, REVERSE_DIRECTION(delete_direction));
+    }
 
-        else if (rebalance_node->balance_factor == EVEN)
-            rebalance_node->balance_factor = REVERSE_DIRECTION(delete_direction);
+    printf("Rebalance node final state: %d (%d)\n", rebalance_node->value,
+            rebalance_node->balance_factor);
+}
 
-        else if (rebalance_node->balance_factor == REVERSE_DIRECTION(delete_direction)) {
-            printf("we must rebalance!\n");
-            avl_rebalance(tree, rebalance_node, REVERSE_DIRECTION(delete_direction));
-        }
-
-        printf("Rebalance node final state: %d (%d)\n", rebalance_node->value,
-                rebalance_node->balance_factor);
+void _avl_insert_balancing(bst* tree, bstnode* rebalance_node, int direction)
+{
+    if (rebalance_node->balance_factor == 0) {
+        // The rebalance point was the root and the tree started even,
+        // so this insert will have shifted the balance of the root from
+        // zero to +/-1. Update that balance, and return.
+        rebalance_node->balance_factor = direction;
+    } else if (rebalance_node->balance_factor == REVERSE_DIRECTION(direction)) {
+        // The new node went in on the opposite side of the rebalance point,
+        // shifting it into a more balanced position.
+        rebalance_node->balance_factor = EVEN;
+    } else if (rebalance_node->balance_factor == direction)  {
+        // The new node went in on the unbalanced side of the rebalance point,
+        // unbalancing it further (to +/- 2). So we need to do some rotations to
+        // restore the balance.
+        avl_rebalance(tree, rebalance_node, direction);
+    }        
 }
 
 
@@ -231,7 +247,6 @@ int avl_insert(bst* tree, int value)
 {
     bstnode* newnode = bstnode_create(value);
     newnode->balance_factor = EVEN;
-
 
     if (tree->length == 0) {
         tree->head = newnode;
@@ -261,41 +276,21 @@ int avl_insert(bst* tree, int value)
     bstnode* rebalance_node = (path_tracker) ? path_tracker->treenode : tree->head;
 
     int insert_direction = (value < rebalance_node->value) ? LEFT : RIGHT;
-    bstnode* pivot = BRANCH(insert_direction, rebalance_node);
-    bstnode* current2 = BRANCH(insert_direction, rebalance_node);
 
-    while(current2->value != value) {
-        if (value < current2->value) {
-            current2->balance_factor = LEFT;
-            current2 = current2->left;
+    // Update balance factors, and rebalance if needed
+    bstnode* current = BRANCH(insert_direction, rebalance_node);
+    while(current->value != value) {
+        if (value < current->value) {
+            current->balance_factor = LEFT;
+            current = current->left;
         }
-        else if (value > current2->value) {
-            current2->balance_factor = RIGHT;
-            current2 = current2->right;
+        else if (value > current->value) {
+            current->balance_factor = RIGHT;
+            current = current->right;
         }
     }
+    _avl_insert_balancing(tree, rebalance_node, insert_direction);
 
-    // The rebalance point was the root and the tree started even,
-    // so this insert will have shifted the balance of the root from
-    // zero to +/-1. Update that balance, and return.
-    if (rebalance_node->balance_factor == 0) {
-        rebalance_node->balance_factor = insert_direction;
-        return 1;
-    }
-
-    // The new node went in on the opposite side of the rebalance point,
-    // shifting it into a more balanced position.
-    if (rebalance_node->balance_factor == REVERSE_DIRECTION(insert_direction)) {
-        rebalance_node->balance_factor = EVEN;
-        return 1;
-    }
-
-    // The new node went in on the unbalanced side of the rebalance point,
-    // unbalancing it further (to +/- 2). So we need to do some rotations to
-    // restore the balance.
-    if (rebalance_node->balance_factor == insert_direction) 
-        avl_rebalance(tree, rebalance_node, insert_direction);
-    
     destroy_update_tracker(tracker_head);
     return 0;
 }
