@@ -112,14 +112,19 @@ void check_rank(bstnode* head, int verbose)
     check_rank(head->right, verbose);
 }
 
-void _inorder_tree_to_array(bstnode* head, int* index, int* array)
+void _inorder_tree_to_array(bstnode* head, int* index, int* array, int length)
 {
     if (head == NULL) return;
 
-    _inorder_tree_to_array(head->left, index, array);
+    _inorder_tree_to_array(head->left, index, array, length);
+    if (*index >= length) {
+        fprintf(stderr, "ERROR: Array index out of range in _inorder_tree_to_array\n");
+        exit(-1);
+    }
+
     array[*index] = head->value;
     (*index)++;
-    _inorder_tree_to_array(head->right, index, array);
+    _inorder_tree_to_array(head->right, index, array, length);
 }
 
 
@@ -148,7 +153,7 @@ void check_bst_ordering(bst* tree)
     }
         
     int index = 0;
-    _inorder_tree_to_array(tree->head, &index, elements);
+    _inorder_tree_to_array(tree->head, &index, elements, tree->length);
 
     assert(isordered(elements, tree->length));
 }
@@ -167,7 +172,7 @@ void check_bst_indexing(bst* tree)
     }
         
     int index = 0;
-    _inorder_tree_to_array(tree->head, &index, elements);
+    _inorder_tree_to_array(tree->head, &index, elements, tree->length);
 
     int* indexed_elements = malloc(sizeof(int) * tree->length);
     for (int i=1;i<=tree->length;i++) {
