@@ -113,6 +113,7 @@ int bst_node_delete(bst* tree, bstnode* del_node, node** path_tracker)
     // we want to move the node to be deleted down the tree
     // until it has no right children
     while(del_node->right) {
+        track_update(path_tracker, del_node->right, RIGHT);
         bst_rotate_left(tree, del_node);
     }
 
